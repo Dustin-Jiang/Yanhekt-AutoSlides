@@ -5,47 +5,71 @@ on:
     branches: [ main ]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            command: make:win
+            artifact_name: AutoSlides-Windows-Setup
+            artifact_path: autoslides/out/make/*.exe
+          - os: ubuntu-latest
+            command: make:deb
+            artifact_name: AutoSlides-Linux-Deb
+            artifact_path: autoslides/out/make/*.deb
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '22'
-        cache: 'npm'
-        cache-dependency-path: autoslides/package-lock.json
+        cache: 'pnpm'
+        cache-dependency-path: autoslides/pnpm-lock.yaml
 
     - name: Install dependencies
       run: |
         cd autoslides
-        npm ci
+        pnpm install
 
     - name: Lint code
       run: |
         cd autoslides
-        npm run lint
+        pnpm run lint
 
-    - name: Build NSIS installer
+    - name: Build Application
       run: |
         cd autoslides
-        npm run make:win
+        pnpm run ${{ matrix.command }}
       env:
-        # Disable code signing for CI builds
+        # Disable code signing for CI builds (mainly for Windows)
         CSC_IDENTITY_AUTO_DISCOVERY: false
 
-    - name: List build output
+    - name: List build output (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
         cd autoslides
         Get-ChildItem -Path out -Recurse -File -Include "*.exe" | Select-Object FullName, Length | Format-Table -AutoSize
       shell: pwsh
 
-    - name: Upload NSIS Installer
+    - name: List build output (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd autoslides
+        ls -lh out/make/*.deb
+
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: AutoSlides-Windows-Setup
-        path: autoslides/out/make/*.exe
+        name: ${{ matrix.artifact_name }}
+        path: ${{ matrix.artifact_path }}
         retention-days: 30

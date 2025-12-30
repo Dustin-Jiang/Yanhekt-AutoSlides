@@ -9,12 +9,15 @@
     "package": "electron-forge package",
     "make:mac": "electron-forge package && rm out/AutoSlides-darwin-arm64/LICENSE out/AutoSlides-darwin-arm64/LICENSES.chromium.html out/AutoSlides-darwin-arm64/version && echo \"sudo xattr -d com.apple.quarantine /Applications/AutoSlides.app\" > out/AutoSlides-darwin-arm64/install.command && chmod +x out/AutoSlides-darwin-arm64/install.command && dropdmg --config-name 'AutoSlides 2' out/AutoSlides-darwin-arm64",
     "make:win": "electron-forge package --platform=win32 --arch=x64 && electron-builder --win --config electron-builder.yml --prepackaged out/AutoSlides-win32-x64",
+    "make:deb": "electron-forge package --platform=linux --arch=x64 && mv out/AutoSlides-linux-x64/AutoSlides out/AutoSlides-linux-x64/autoslides && chmod -R 755 out/AutoSlides-linux-x64 && electron-builder --linux deb --config electron-builder.yml --prepackaged out/AutoSlides-linux-x64",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
+  "homepage": "https://learn.ruc.edu.kg/",
   "author": {
-    "name": "BIT-admin"
+    "name": "BIT-admin",
+    "email": "info@ruc.edu.kg"
   },
   "license": "Apache-2.0",
   "devDependencies": {
