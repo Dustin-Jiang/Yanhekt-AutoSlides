@@ -24,32 +24,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 9
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '22'
-        cache: 'pnpm'
-        cache-dependency-path: autoslides/pnpm-lock.yaml
+        cache: 'npm'
+        cache-dependency-path: autoslides/package-lock.json
 
     - name: Install dependencies
       run: |
         cd autoslides
-        pnpm install
+        npm install
 
     - name: Lint code
       run: |
         cd autoslides
-        pnpm run lint
+        npm run lint
 
     - name: Build Application
       run: |
         cd autoslides
-        pnpm run ${{ matrix.command }}
+        npm run ${{ matrix.command }}
       env:
         # Disable code signing for CI builds (mainly for Windows)
         CSC_IDENTITY_AUTO_DISCOVERY: false
