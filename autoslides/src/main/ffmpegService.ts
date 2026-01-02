@@ -1,6 +1,7 @@
 
 import path from 'path';
 import fs from 'fs';
+import log from 'electron-log';
 
 export class FFmpegService {
   private ffmpegPath: string | null = null;
@@ -14,18 +15,18 @@ export class FFmpegService {
       // In packaged app, check extraResource first
       if (process.resourcesPath) {
         // Try extraResource path first (packaged app)
-        const ffmpegBinary = process.platform === 'darwin' ? 'ffmpeg' : 'ffmpeg.exe';
+        const ffmpegBinary = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
         const extraResourcePath = path.join(process.resourcesPath, 'ffmpeg-static', ffmpegBinary);
-        console.log('Checking extraResource path:', extraResourcePath);
-        console.log('Platform:', process.platform);
-        console.log('Resources path:', process.resourcesPath);
+        log.info('Checking extraResource path:', extraResourcePath);
+        log.info('Platform:', process.platform);
+        log.info('Resources path:', process.resourcesPath);
 
         if (fs.existsSync(extraResourcePath)) {
           this.ffmpegPath = extraResourcePath;
-          console.log('FFmpeg path (extraResource):', this.ffmpegPath);
+          log.info('FFmpeg path (extraResource):', this.ffmpegPath);
           return;
         } else {
-          console.log('extraResource path does not exist');
+          log.info('extraResource path does not exist');
         }
       }
 
@@ -34,9 +35,9 @@ export class FFmpegService {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const ffmpegStatic = require('ffmpeg-static');
       this.ffmpegPath = ffmpegStatic;
-      console.log('FFmpeg path (npm package):', this.ffmpegPath);
+      log.info('FFmpeg path (npm package):', this.ffmpegPath);
     } catch (error) {
-      console.error('ffmpeg-static not available:', error);
+      log.error('ffmpeg-static not available:', error);
       this.ffmpegPath = null;
     }
   }

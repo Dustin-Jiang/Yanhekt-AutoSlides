@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog, Menu, shell, nativeTheme, session 
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
+import log from 'electron-log';
 import { MainAuthService } from './main/authService';
 import { MainApiClient } from './main/apiClient';
 import { ConfigService } from './main/configService';
@@ -67,45 +68,51 @@ const getWindowBackgroundColor = (): string => {
 
 const createMenuTemplate = () => {
   const template: Electron.MenuItemConstructorOptions[] = [
-    { label: app.name, submenu: [
-      { role: 'about', label: getTranslation('titlebar.about') },
-      { type: 'separator' },
-      { label: getTranslation('titlebar.checkForUpdates'), click: async () => {
-        const mainWindow = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
-        if (mainWindow) {
-          mainWindow.webContents.send('menu:checkForUpdates');
-        }
-      } },
-      {
-        label: getTranslation('titlebar.legalNotices'),
-        click: () => {
-          // In development, use the source directory; in production, use the app directory
-          const termsPath = app.isPackaged
-            ? path.join(process.resourcesPath, 'terms/terms.rtf')
-            : path.join(__dirname, '../../resources/terms/terms.rtf');
-          shell.openPath(termsPath);
-        }
-      },
-      { type: 'separator' },
-      { role: 'services', label: getTranslation('titlebar.services') },
-      { type: 'separator' },
-      { role: 'hide', label: getTranslation('titlebar.hide') },
-      { role: 'hideOthers', label: getTranslation('titlebar.hideOthers') },
-      { role: 'unhide', label: getTranslation('titlebar.showAll') },
-      { type: 'separator' },
-      { role: 'quit', label: getTranslation('titlebar.quit') }
-    ] },
+    {
+      label: app.name, submenu: [
+        { role: 'about', label: getTranslation('titlebar.about') },
+        { type: 'separator' },
+        {
+          label: getTranslation('titlebar.checkForUpdates'), click: async () => {
+            const mainWindow = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+            if (mainWindow) {
+              mainWindow.webContents.send('menu:checkForUpdates');
+            }
+          }
+        },
+        {
+          label: getTranslation('titlebar.legalNotices'),
+          click: () => {
+            // In development, use the source directory; in production, use the app directory
+            const termsPath = app.isPackaged
+              ? path.join(process.resourcesPath, 'terms/terms.rtf')
+              : path.join(__dirname, '../../resources/terms/terms.rtf');
+            shell.openPath(termsPath);
+          }
+        },
+        { type: 'separator' },
+        { role: 'services', label: getTranslation('titlebar.services') },
+        { type: 'separator' },
+        { role: 'hide', label: getTranslation('titlebar.hide') },
+        { role: 'hideOthers', label: getTranslation('titlebar.hideOthers') },
+        { role: 'unhide', label: getTranslation('titlebar.showAll') },
+        { type: 'separator' },
+        { role: 'quit', label: getTranslation('titlebar.quit') }
+      ]
+    },
     { label: getTranslation('titlebar.file'), submenu: [{ label: getTranslation('titlebar.new'), accelerator: 'CmdOrCtrl+N', enabled: false }, { label: getTranslation('titlebar.open'), accelerator: 'CmdOrCtrl+O', enabled: false }, { type: 'separator' }, { role: 'close', label: getTranslation('titlebar.close') }] },
     { label: getTranslation('titlebar.edit'), submenu: [{ role: 'undo', label: getTranslation('titlebar.undo') }, { role: 'redo', label: getTranslation('titlebar.redo') }, { type: 'separator' }, { role: 'cut', label: getTranslation('titlebar.cut') }, { role: 'copy', label: getTranslation('titlebar.copy') }, { role: 'paste', label: getTranslation('titlebar.paste') }, { role: 'selectAll', label: getTranslation('titlebar.selectAll') }] },
     { label: getTranslation('titlebar.view'), submenu: [{ role: 'reload', label: getTranslation('titlebar.reload') }, { role: 'forceReload', label: getTranslation('titlebar.forceReload') }, { role: 'toggleDevTools', label: getTranslation('titlebar.toggleDevTools') }, { type: 'separator' }, { role: 'resetZoom', label: getTranslation('titlebar.resetZoom') }, { role: 'zoomIn', label: getTranslation('titlebar.zoomIn') }, { role: 'zoomOut', label: getTranslation('titlebar.zoomOut') }, { type: 'separator' }, { role: 'togglefullscreen', label: getTranslation('titlebar.toggleFullscreen') }] },
     { label: getTranslation('titlebar.window'), submenu: [{ role: 'minimize', label: getTranslation('titlebar.minimize') }, { role: 'close', label: getTranslation('titlebar.close') }, { type: 'separator' }, { role: 'front', label: getTranslation('titlebar.bringAllToFront') }] },
-    { label: getTranslation('titlebar.help'), role: 'help', submenu: [
-      { label: getTranslation('titlebar.visitGitHub'), click: () => { shell.openExternal('https://github.com/bit-admin/Yanhekt-AutoSlides'); } },
-      { label: getTranslation('titlebar.itCenterSoftware'), click: () => { shell.openExternal('https://it.ruc.edu.kg/zh/software'); } },
-      { type: 'separator' },
-      { label: getTranslation('titlebar.webVersion'), click: () => { shell.openExternal('https://learn.ruc.edu.kg'); } },
-      { label: getTranslation('titlebar.ssimTest'), click: () => { shell.openExternal('https://learn.ruc.edu.kg/test'); } }
-    ] }
+    {
+      label: getTranslation('titlebar.help'), role: 'help', submenu: [
+        { label: getTranslation('titlebar.visitGitHub'), click: () => { shell.openExternal('https://github.com/bit-admin/Yanhekt-AutoSlides'); } },
+        { label: getTranslation('titlebar.itCenterSoftware'), click: () => { shell.openExternal('https://it.ruc.edu.kg/zh/software'); } },
+        { type: 'separator' },
+        { label: getTranslation('titlebar.webVersion'), click: () => { shell.openExternal('https://learn.ruc.edu.kg'); } },
+        { label: getTranslation('titlebar.ssimTest'), click: () => { shell.openExternal('https://learn.ruc.edu.kg/test'); } }
+      ]
+    }
   ];
   return template;
 };
@@ -148,6 +155,7 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
+  log.info('App is ready');
   // Set up the menu only on macOS, disable on other platforms
   if (process.platform === 'darwin') {
     updateApplicationMenu();
